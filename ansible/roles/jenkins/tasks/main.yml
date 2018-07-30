@@ -1,0 +1,73 @@
+
+
+- name: "Create needed directories"
+  file: 
+     path: "{{ item }}"
+     state: directory
+  with_items:
+     - '/opt/mxorc/jenkins'
+     - '/opt/mxorc/jenkins/jenkins_home'
+
+
+- name: "Download Tomcat instance"
+  get_url:
+     url: "http://mirror.olnevhost.net/pub/apache/tomcat/tomcat-7/v7.0.90/bin/apache-tomcat-7.0.90.zip"
+     dest: /opt/mxorc/jenkins
+
+
+- name: "Download Jenkins.war File"
+  get_url:
+     url: "http://mirrors.jenkins.io/war-stable/latest/jenkins.war"
+     dest: /opt/mxorc/jenkins
+
+
+- name: "Unzip Tomcat Instance"
+  unarchive: 
+     src: /opt/mxorc/jenkins/apache-tomcat-7.0.90.zip
+     dest: /opt/mxorc/jenkins/
+     remote_src: yes
+
+     
+- name: "Move the unziped Tomcat"
+  command: "mv /opt/mxorc/jenkins/apache-tomcat-7.0.90 /opt/mxorc/jenkins/jenkins_tomcat"
+
+
+- name: "Remove webapps directory"
+  file: 
+     path: "/opt/mxorc/jenkins/jenkins_tomcat/webapps/"
+     state: absent
+
+
+- name: "Create the Webapps Directory" 
+  file: 
+     path: "/opt/mxorc/jenkins/jenkins_tomcat/webapps/"
+     state: directory
+
+
+- name: "Add Jenkins war file to webapps direcctory"
+  copy: 
+     src: /opt/mxorc/jenkins/jenkins.war
+     dest: /opt/mxorc/jenkins/jenkins_tomcat/webapps/
+     remote_src: yes
+
+
+- name: "Add in the setenv.sh for Jenkins"
+  copy: 
+     src: setenv.sh
+     dest: /opt/mxorc/jenkins/jenkins_tomcat/bin/
+     mode: 0755
+
+
+- name: "Turn on Jenkins"
+  command: "{{ item }}"
+  with_items:
+      - "chmod 0755 /opt/mxorc/jenkins/jenkins_tomcat/bin/catalina.sh"
+      - "/opt/mxorc/jenkins/jenkins_tomcat/bin/catalina.sh start"
+
+- name: "Cleaning Up Files"
+  file:
+     path: "{{ item }}"
+     state: absent
+  with_items: 
+     - /opt/mxorc/jenkins/apache-tomcat-7.0.90.zip 
+     - /opt/mxorc/jenkins/jenkins.war

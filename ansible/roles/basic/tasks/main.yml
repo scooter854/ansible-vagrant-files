@@ -1,0 +1,79 @@
+#####################################################
+#7/13/18
+#Created by Payton Murray 
+#
+#This is the main.yml file for firs time install of 
+#packages for a new CentOS7 box. 
+#
+#1) Installs Packages
+#2) Creates new home directory location to match SWA
+#3) Creates an mxorc user
+#4) Creates and change the owner of the /opt/mxorc directory
+#5) Download Java JDK
+#6) Unzip the Java JDK 
+#7) Remove the Java.tar.gz file 
+####################################################
+
+
+#Installs needed packages for first time setup
+- name: "Installing Packages"
+  yum: 
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - wget
+    - vim
+    - unzip
+    - git
+
+
+#This is for creating a new home directoy structure
+- name: "Creating Home Directory"
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /export/home
+    - /opt/java
+
+
+#This is for creating the mxorc user on the box
+- name: "Create Mxorc User"
+  user:
+    name: mxorc
+    password: $6$DUh8X04X$LAwBJbZVrS6D3sKzTMw9z9LpiQJgRSpWKN2svo1Wxo.7ebiUa2GqLc94rRFLuXNQMz3euXsGbrQKwK3c/lN0l/ 
+    groups: wheel  
+    state: present
+    shell: /bin/bash
+    system: no
+    createhome: yes
+    home: /export/home/mxorc
+
+
+#This is for creating the mxorc directory and changing the owner of the directory to mxorc
+- name: "Create /opt/mxorc Directory"
+  file:
+    path: /opt/mxorc
+    state: directory 
+    owner: mxorc
+    mode: 0755
+
+
+#This is for installing java
+- name: "Installing Java JDK"
+  command: "wget -q -O /opt/java.tar.gz --no-check-certificate --no-cookies --header 'Cookie: oraclelicense=accept-securebackup-cookie' http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jdk-8u181-linux-x64.tar.gz creates=/opt/java.tar.gz"
+
+
+#This is for unpacking the Java tar
+- name: "Unzip Java JDK"
+  unarchive: 
+    src: /opt/java.tar.gz 
+    dest: /opt/java 
+    remote_src: yes
+
+
+#This is for removing the java.tar file
+- name: "Removing Tar File"
+  file: 
+    state: absent
+    path: /opt/java.tar.gz
