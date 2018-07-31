@@ -1,0 +1,11 @@
+---
+- hosts: all
+  become: true
+  roles:
+  - basic
+
+- hosts: all
+  become: yes 
+  become_user: mxorc   
+  roles :
+  - jenkins
